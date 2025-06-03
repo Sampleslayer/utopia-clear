@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -133,6 +132,10 @@ export const ClientsPage: React.FC = () => {
 
   const handleMerchantClick = (merchantId: string) => {
     navigate(`/dashboard/merchants/${merchantId}`);
+  };
+
+  const handleViolationsFilterChange = (checked: boolean | 'indeterminate') => {
+    setShowViolationsOnly(checked === true);
   };
 
   const getStatusColor = (status: string) => {
@@ -272,7 +275,7 @@ export const ClientsPage: React.FC = () => {
                 <Checkbox
                   id="violations-only"
                   checked={showViolationsOnly}
-                  onCheckedChange={setShowViolationsOnly}
+                  onCheckedChange={handleViolationsFilterChange}
                 />
                 <label
                   htmlFor="violations-only"
