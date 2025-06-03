@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Ticket, Plus, Search, Filter, MessageSquare, Clock, User } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getClientData } from '@/data/clientData';
-import { tickets } from '@/data/demoData';
+import { demoTickets as tickets } from '@/data/demoData';
 
 export const TicketsPage: React.FC = () => {
   const { user } = useAuth();

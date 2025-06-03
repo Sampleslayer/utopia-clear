@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CreditCard, Search, Filter, Download } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getClientData } from '@/data/clientData';
-import { transactions, locations } from '@/data/demoData';
+import { demoTransactions as transactions, demoLocations as locations } from '@/data/demoData';
 
 export const TransactionsPage: React.FC = () => {
   const { user } = useAuth();
