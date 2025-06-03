@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,12 +17,10 @@ import {
   Phone,
   Mail,
   Calendar,
-  Plus,
   UserPlus,
   AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { AddMerchantDialog } from './AddMerchantDialog';
 import { EntityActions } from '@/components/ui/entity-actions';
 import { SectionHeader } from '@/components/ui/section-header';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -40,10 +39,10 @@ const mockMerchants = [
     status: 'active',
     createdAt: '2024-01-15',
     monthlyRevenue: 12400,
-    expectedRevenue: 15000, // Deklarovaný obrat
+    expectedRevenue: 15000,
     locationsCount: 2,
     assignedManager: 'Peter Manažér',
-    contractViolation: true // Skutočný obrat je nižší ako deklarovaný
+    contractViolation: true
   },
   {
     id: 'client-2',
@@ -139,7 +138,6 @@ export const ClientsPage: React.FC = () => {
   };
 
   const handleAddMerchant = () => {
-    // Set merchant onboarding context
     localStorage.setItem('onboarding_context', JSON.stringify({ 
       type: 'merchant',
       initiatedBy: user?.role,

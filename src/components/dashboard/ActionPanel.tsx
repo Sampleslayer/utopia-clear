@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -13,7 +13,6 @@ export const ActionPanel: React.FC = () => {
   const navigate = useNavigate();
 
   const handleAddMerchant = () => {
-    // Set merchant onboarding context
     localStorage.setItem('onboarding_context', JSON.stringify({ 
       type: 'merchant',
       initiatedBy: user?.role,
@@ -23,7 +22,6 @@ export const ActionPanel: React.FC = () => {
   };
 
   const handleAddTeamMember = () => {
-    // Redirect to onboarding for new team member
     navigate('/onboarding');
   };
 
