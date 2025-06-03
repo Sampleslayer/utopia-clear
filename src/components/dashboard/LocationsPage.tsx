@@ -1,222 +1,137 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Search, MapPin, Users, TrendingUp, DollarSign } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Plus, Edit, Trash2, Users, Activity } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { getClientData } from '@/data/clientData';
-import { PageHeader } from '@/components/ui/page-header';
-import { EntityActions } from '@/components/ui/entity-actions';
+import { locations } from '@/data/demoData';
 
 export const LocationsPage: React.FC = () => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
 
-  if (!user) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-600 dark:text-gray-400">
-          Načítanie...
-        </p>
-      </div>
-    );
-  }
-
-  // Get client data based on user role
-  const getLocationData = () => {
-    if (user.role === 'client' && user.id === 'slavka-volkova-1') {
+  // Get data based on user role
+  const getLocationsData = () => {
+    if (user?.role === 'admin') {
+      return locations; // Admin sees all locations from demoData
+    } else if (user?.role === 'client' && user?.id === 'slavka-volkova-1') {
       const clientData = getClientData(user.id);
-      return {
-        locations: clientData?.locations || [],
-        devices: clientData?.devices || [],
-        transactions: clientData?.transactions || []
-      };
+      return clientData?.locations || [];
     }
-    // For admin users, return empty arrays or implement admin location logic
-    return {
-      locations: [],
-      devices: [],
-      transactions: []
-    };
+    return [];
   };
 
-  const { locations, devices, transactions } = getLocationData();
-
-  const filteredLocations = locations.filter(location =>
-    location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    location.address.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const locationsData = getLocationsData();
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
       case 'inactive': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'maintenance': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
       default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
     }
   };
 
-  const getDeviceCount = (locationId: string) => {
-    return devices.filter(device => device.locationId === locationId).length;
-  };
-
-  const getMonthlyVolume = (locationId: string) => {
-    const locationTransactions = transactions.filter(tx => tx.locationId === locationId);
-    return locationTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-  };
-
-  const activeLocations = filteredLocations.filter(l => l.status === 'active').length;
-  const totalVolume = filteredLocations.reduce((sum, location) => sum + getMonthlyVolume(location.id), 0);
-  const totalDevices = filteredLocations.reduce((sum, location) => sum + getDeviceCount(location.id), 0);
-
-  const stats = [
-    {
-      label: 'Aktívne pobočky',
-      value: activeLocations,
-      icon: MapPin,
-      color: 'text-blue-500'
-    },
-    {
-      label: 'Celkom zariadení',
-      value: totalDevices,
-      icon: Users,
-      color: 'text-green-500'
-    },
-    {
-      label: 'Mesačný obrat',
-      value: `€${totalVolume.toLocaleString()}`,
-      icon: DollarSign,
-      color: 'text-purple-500'
-    },
-    {
-      label: 'Priemerný obrat',
-      value: `€${activeLocations > 0 ? Math.round(totalVolume / activeLocations).toLocaleString() : '0'}`,
-      icon: TrendingUp,
-      color: 'text-orange-500'
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active': return 'Aktívna';
+      case 'inactive': return 'Neaktívna';
+      case 'maintenance': return 'Údržba';
+      default: return 'Neznámy';
     }
-  ];
-
-  const actions = (
-    <Button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600">
-      <Plus className="h-4 w-4 mr-2" />
-      Pridať pobočku
-    </Button>
-  );
-
-  const description = user.role === 'admin' 
-    ? 'Správa všetkých pobočiek v systéme'
-    : 'Správa vašich prevádzok a pobočiek';
+  };
 
   return (
-    <PageHeader
-      title="Pobočky"
-      description={description}
-      stats={stats}
-      actions={actions}
-    >
-      {/* Search */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Hľadať pobočky..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredLocations.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Názov</TableHead>
-                  <TableHead>Adresa</TableHead>
-                  <TableHead>Typ</TableHead>
-                  <TableHead>Zariadenia</TableHead>
-                  <TableHead>Mesačný obrat</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Vytvorené</TableHead>
-                  <TableHead>Akcie</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredLocations.map((location) => (
-                  <TableRow key={location.id}>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                        <span className="font-medium">{location.name}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{location.address}</TableCell>
-                    <TableCell className="capitalize">{location.type}</TableCell>
-                    <TableCell>
-                      <span className="font-medium">{getDeviceCount(location.id)}</span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-green-600">
-                        €{getMonthlyVolume(location.id).toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(location.status)}>
-                        {location.status === 'active' && 'Aktívne'}
-                        {location.status === 'inactive' && 'Neaktívne'}
-                        {location.status === 'pending' && 'Čakajúce'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {new Date(location.createdAt).toLocaleDateString('sk-SK')}
-                    </TableCell>
-                    <TableCell>
-                      <EntityActions
-                        actions={[
-                          {
-                            type: 'view',
-                            label: 'Zobraziť detail',
-                            onClick: () => console.log('View location', location.id)
-                          },
-                          {
-                            type: 'edit',
-                            label: 'Upraviť',
-                            onClick: () => console.log('Edit location', location.id)
-                          },
-                          {
-                            type: 'delete',
-                            label: 'Vymazať',
-                            onClick: () => console.log('Delete location', location.id)
-                          }
-                        ]}
-                        entityName="pobočku"
-                        entityId={location.name}
-                        compact={true}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Žiadne pobočky
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                {searchTerm ? 'Nenašli sa žiadne pobočky zodpovedajúce vyhľadávaniu.' : 'Zatiaľ nemáte žiadne pobočky.'}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </PageHeader>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Pobočky
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            {user?.role === 'admin' 
+              ? 'Správa všetkých pobočiek v systéme'
+              : 'Správa vašich pobočiek'
+            }
+          </p>
+        </div>
+        {user?.role === 'admin' && (
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Pridať pobočku
+          </Button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {locationsData.map((location) => (
+          <Card key={location.id} className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center space-x-2">
+                  <MapPin className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="text-lg">{location.name}</CardTitle>
+                </div>
+                <Badge className={getStatusColor(location.status)}>
+                  {getStatusText(location.status)}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Adresa</p>
+                <p className="font-medium">{location.address}</p>
+                <p className="text-sm text-gray-500">{location.city}, {location.country}</p>
+              </div>
+              
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center space-x-1">
+                  <Users className="h-4 w-4 text-gray-500" />
+                  <span>{location.devicesCount} zariadení</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <Activity className="h-4 w-4 text-gray-500" />
+                  <span>{location.type || 'Obchod'}</span>
+                </div>
+              </div>
+              
+              <div className="text-xs text-gray-500">
+                Vytvorené: {new Date(location.createdAt).toLocaleDateString('sk-SK')}
+              </div>
+              
+              {user?.role === 'admin' && (
+                <div className="flex space-x-2 pt-2">
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Edit className="h-3 w-3 mr-1" />
+                    Upraviť
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {locationsData.length === 0 && (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+              Žiadne pobočky
+            </h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              {user?.role === 'admin' 
+                ? 'V systéme nie sú žiadne pobočky.'
+                : 'Nemáte žiadne pobočky.'
+              }
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };

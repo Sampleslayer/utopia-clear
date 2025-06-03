@@ -40,24 +40,36 @@ export const DashboardLayout: React.FC = () => {
       return getDashboardComponent();
     }
     
-    if (location.pathname === '/dashboard/merchants') {
-      return <ClientsPage />;
+    // Admin-specific routes
+    if (user?.role === 'admin') {
+      if (location.pathname === '/dashboard/merchants') {
+        return <ClientsPage />;
+      }
+      
+      if (location.pathname.startsWith('/dashboard/merchants/')) {
+        return <MerchantDetailPage />;
+      }
+      
+      if (location.pathname === '/dashboard/reports') {
+        return <ReportsPage />;
+      }
+      
+      if (location.pathname === '/dashboard/team') {
+        return <TeamPage />;
+      }
+      
+      if (location.pathname.startsWith('/dashboard/team/')) {
+        return <TeamMemberDetail />;
+      }
     }
     
-    if (location.pathname.startsWith('/dashboard/merchants/')) {
-      return <MerchantDetailPage />;
-    }
-    
+    // Shared routes between admin and client
     if (location.pathname === '/dashboard/locations') {
       return <LocationsPage />;
     }
     
     if (location.pathname === '/dashboard/transactions') {
       return <TransactionsPage />;
-    }
-    
-    if (location.pathname === '/dashboard/reports') {
-      return <ReportsPage />;
     }
     
     if (location.pathname === '/dashboard/contracts') {
@@ -70,14 +82,6 @@ export const DashboardLayout: React.FC = () => {
     
     if (location.pathname === '/dashboard/tickets') {
       return <TicketsPage />;
-    }
-    
-    if (location.pathname === '/dashboard/team') {
-      return <TeamPage />;
-    }
-    
-    if (location.pathname.startsWith('/dashboard/team/')) {
-      return <TeamMemberDetail />;
     }
     
     if (location.pathname === '/dashboard/settings') {
