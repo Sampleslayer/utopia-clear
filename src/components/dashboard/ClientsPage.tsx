@@ -138,6 +138,16 @@ export const ClientsPage: React.FC = () => {
     setShowViolationsOnly(checked === true);
   };
 
+  const handleAddMerchant = () => {
+    // Set merchant onboarding context
+    localStorage.setItem('onboarding_context', JSON.stringify({ 
+      type: 'merchant',
+      initiatedBy: user?.role,
+      organizationId: user?.organizationId 
+    }));
+    navigate('/onboarding/company');
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -219,7 +229,13 @@ export const ClientsPage: React.FC = () => {
         <TrendingUp className="h-4 w-4" />
         <span>Reporty</span>
       </Button>
-      <AddMerchantDialog />
+      <Button 
+        onClick={handleAddMerchant}
+        className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white flex items-center space-x-2"
+      >
+        <UserPlus className="h-4 w-4" />
+        <span>Pridať merchanta</span>
+      </Button>
     </>
   );
 
