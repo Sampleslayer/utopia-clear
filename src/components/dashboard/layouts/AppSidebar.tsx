@@ -87,21 +87,27 @@ export function AppSidebar() {
 
     const clientItems = [
       {
-        title: "Transakcie",
-        url: "/dashboard/transactions",
-        icon: CreditCard,
-        roles: ['client']
-      },
-      {
         title: "Pobočky",
         url: "/dashboard/locations",
         icon: MapPin,
         roles: ['client']
       },
       {
+        title: "Zmluvy",
+        url: "/dashboard/contracts",
+        icon: FileText,
+        roles: ['client']
+      },
+      {
         title: "Tickety",
         url: "/dashboard/tickets",
         icon: Ticket,
+        roles: ['client']
+      },
+      {
+        title: "Transakcie",
+        url: "/dashboard/transactions",
+        icon: CreditCard,
         roles: ['client']
       },
       {
@@ -119,6 +125,27 @@ export function AppSidebar() {
 
   const menuItems = getMenuItems();
 
+  // Get organization info based on user role
+  const getOrganizationInfo = () => {
+    if (user?.role === 'client' && user?.fullName === 'Slávka Valková') {
+      return {
+        name: 'Beauty Plus s.r.o.',
+        type: 'Klientska spoločnosť',
+        location: 'Bratislava, SK',
+        phone: '+421 902 123 456'
+      };
+    }
+    
+    return {
+      name: 'Onepos',
+      type: 'ISO Organizácia',
+      location: 'Bratislava, SK',
+      phone: '+421 XXX XXX XXX'
+    };
+  };
+
+  const orgInfo = getOrganizationInfo();
+
   return (
     <Sidebar>
       <SidebarHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
@@ -135,31 +162,51 @@ export function AppSidebar() {
         </Card>
 
         {/* Organization Info Card */}
-        <Card className="bg-blue-50 dark:bg-blue-900/20 shadow-sm border border-blue-200 dark:border-blue-800/50 mt-4">
+        <Card className={`shadow-sm border mt-4 ${
+          user?.role === 'client' 
+            ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50' 
+            : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50'
+        }`}>
           <CardContent className="p-4">
             <div className="space-y-3">
               <div className="flex items-center space-x-2">
-                <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-semibold text-blue-800 dark:text-blue-300">
-                  Onepos
+                <Building2 className={`h-4 w-4 ${
+                  user?.role === 'client' 
+                    ? 'text-purple-600 dark:text-purple-400' 
+                    : 'text-blue-600 dark:text-blue-400'
+                }`} />
+                <span className={`text-sm font-semibold ${
+                  user?.role === 'client' 
+                    ? 'text-purple-800 dark:text-purple-300' 
+                    : 'text-blue-800 dark:text-blue-300'
+                }`}>
+                  {orgInfo.name}
                 </span>
               </div>
               
-              <div className="space-y-2 text-xs text-blue-700 dark:text-blue-300">
+              <div className={`space-y-2 text-xs ${
+                user?.role === 'client' 
+                  ? 'text-purple-700 dark:text-purple-300' 
+                  : 'text-blue-700 dark:text-blue-300'
+              }`}>
                 <div className="flex items-center space-x-2">
-                  <span className="bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full font-medium">
-                    ISO Organizácia
+                  <span className={`px-2 py-1 rounded-full font-medium ${
+                    user?.role === 'client' 
+                      ? 'bg-purple-100 dark:bg-purple-800 text-purple-800 dark:text-purple-200' 
+                      : 'bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200'
+                  }`}>
+                    {orgInfo.type}
                   </span>
                 </div>
                 
                 <div className="flex items-center space-x-1">
                   <MapPin className="h-3 w-3" />
-                  <span>Bratislava, SK</span>
+                  <span>{orgInfo.location}</span>
                 </div>
                 
                 <div className="flex items-center space-x-1">
                   <Phone className="h-3 w-3" />
-                  <span>+421 XXX XXX XXX</span>
+                  <span>{orgInfo.phone}</span>
                 </div>
               </div>
             </div>
