@@ -132,8 +132,7 @@ export function AppSidebar() {
         name: 'Beauty Plus s.r.o.',
         type: 'Klientska spoločnosť',
         location: 'Bratislava, SK',
-        phone: '+421 902 123 456',
-        showLogo: false
+        phone: '+421 902 123 456'
       };
     }
     
@@ -141,8 +140,7 @@ export function AppSidebar() {
       name: 'Onepos',
       type: 'ISO Organizácia',
       location: 'Bratislava, SK',
-      phone: '+421 XXX XXX XXX',
-      showLogo: true
+      phone: '+421 XXX XXX XXX'
     };
   };
 
@@ -151,22 +149,20 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-        {orgInfo.showLogo && (
-          <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-3">
-              <div className="flex items-center justify-center">
-                <img 
-                  src="https://cdn.prod.website-files.com/65bb58bd9feeda1fd2e1b551/65bb58bd9feeda1fd2e1b5ad_logo-header.svg" 
-                  alt="Onepos Logo" 
-                  className="h-8 w-auto"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <Card className="bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+          <CardContent className="p-3">
+            <div className="flex items-center justify-center">
+              <img 
+                src="https://cdn.prod.website-files.com/65bb58bd9feeda1fd2e1b551/65bb58bd9feeda1fd2e1b5ad_logo-header.svg" 
+                alt="Onepos Logo" 
+                className="h-8 w-auto"
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Organization Info Card */}
-        <Card className={`shadow-sm border ${orgInfo.showLogo ? 'mt-4' : ''} ${
+        <Card className={`shadow-sm border mt-4 ${
           user?.role === 'client' 
             ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800/50' 
             : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50'
@@ -258,7 +254,7 @@ export function AppSidebar() {
           </div>
           
           <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200 dark:border-gray-700">
-            © 2025 {user?.role === 'client' ? 'Beauty Plus' : 'Onepos'} Platform
+            © 2025 Onepos Platform
           </div>
         </div>
       </SidebarFooter>
