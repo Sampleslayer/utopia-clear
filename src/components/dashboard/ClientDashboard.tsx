@@ -285,7 +285,7 @@ export const ClientDashboard: React.FC = () => {
           <CardContent className="p-6">
             <div className="space-y-4">
               {recentTransactions.map((transaction) => {
-                const location = locations.find(l => l.locationId === transaction.locationId);
+                const location = locations.find(l => l.id === transaction.locationId);
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
                     <div className="flex items-start space-x-3">
