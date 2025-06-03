@@ -15,6 +15,7 @@ import { TeamMemberDetail } from '../TeamMemberDetail';
 import { SettingsPage } from '../SettingsPage';
 import { MerchantDetailPage } from '../MerchantDetailPage';
 import { TransactionsPage } from '../TransactionsPage';
+import { LocationsPage } from '../LocationsPage';
 import { ReportsPage } from '../ReportsPage';
 import { GlobalChatbot } from '../../chat/GlobalChatbot';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,6 +46,10 @@ export const DashboardLayout: React.FC = () => {
     
     if (location.pathname.startsWith('/dashboard/merchants/')) {
       return <MerchantDetailPage />;
+    }
+    
+    if (location.pathname === '/dashboard/locations') {
+      return <LocationsPage />;
     }
     
     if (location.pathname === '/dashboard/transactions') {

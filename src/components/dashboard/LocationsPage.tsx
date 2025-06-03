@@ -7,8 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Plus, Search, MapPin, Users, TrendingUp, DollarSign } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { demoLocations, demoDevices, demoTransactions, LocationData } from '@/data/demoData';
-import { getFilteredData } from '@/utils/roleUtils';
+import { getClientData } from '@/data/clientData';
 import { PageHeader } from '@/components/ui/page-header';
 import { EntityActions } from '@/components/ui/entity-actions';
 
@@ -26,10 +25,30 @@ export const LocationsPage: React.FC = () => {
     );
   }
 
-  const filteredLocations: LocationData[] = getFilteredData(demoLocations, user).filter(location =>
+  // Get client data based on user role
+  const getLocationData = () => {
+    if (user.role === 'client' && user.id === 'slavka-volkova-1') {
+      const clientData = getClientData(user.id);
+      return {
+        locations: clientData?.locations || [],
+        devices: clientData?.devices || [],
+        transactions: clientData?.transactions || []
+      };
+    }
+    // For admin users, return empty arrays or implement admin location logic
+    return {
+      locations: [],
+      devices: [],
+      transactions: []
+    };
+  };
+
+  const { locations, devices, transactions } = getLocationData();
+
+  const filteredLocations = locations.filter(location =>
     location.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     location.address.toLowerCase().includes(searchTerm.toLowerCase())
-  ) as LocationData[];
+  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -41,11 +60,11 @@ export const LocationsPage: React.FC = () => {
   };
 
   const getDeviceCount = (locationId: string) => {
-    return demoDevices.filter(device => device.locationId === locationId).length;
+    return devices.filter(device => device.locationId === locationId).length;
   };
 
   const getMonthlyVolume = (locationId: string) => {
-    const locationTransactions = demoTransactions.filter(tx => tx.locationId === locationId);
+    const locationTransactions = transactions.filter(tx => tx.locationId === locationId);
     return locationTransactions.reduce((sum, tx) => sum + tx.amount, 0);
   };
 
@@ -114,76 +133,88 @@ export const LocationsPage: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Názov</TableHead>
-                <TableHead>Adresa</TableHead>
-                <TableHead>Typ</TableHead>
-                <TableHead>Zariadenia</TableHead>
-                <TableHead>Mesačný obrat</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Vytvorené</TableHead>
-                <TableHead>Akcie</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredLocations.map((location) => (
-                <TableRow key={location.id}>
-                  <TableCell>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                      <span className="font-medium">{location.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>{location.address}</TableCell>
-                  <TableCell className="capitalize">{location.type}</TableCell>
-                  <TableCell>
-                    <span className="font-medium">{getDeviceCount(location.id)}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className="font-medium text-green-600">
-                      €{getMonthlyVolume(location.id).toLocaleString()}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(location.status)}>
-                      {location.status === 'active' && 'Aktívne'}
-                      {location.status === 'inactive' && 'Neaktívne'}
-                      {location.status === 'pending' && 'Čakajúce'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(location.createdAt).toLocaleDateString('sk-SK')}
-                  </TableCell>
-                  <TableCell>
-                    <EntityActions
-                      actions={[
-                        {
-                          type: 'view',
-                          label: 'Zobraziť detail',
-                          onClick: () => console.log('View location', location.id)
-                        },
-                        {
-                          type: 'edit',
-                          label: 'Upraviť',
-                          onClick: () => console.log('Edit location', location.id)
-                        },
-                        {
-                          type: 'delete',
-                          label: 'Vymazať',
-                          onClick: () => console.log('Delete location', location.id)
-                        }
-                      ]}
-                      entityName="pobočku"
-                      entityId={location.name}
-                      compact={true}
-                    />
-                  </TableCell>
+          {filteredLocations.length > 0 ? (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Názov</TableHead>
+                  <TableHead>Adresa</TableHead>
+                  <TableHead>Typ</TableHead>
+                  <TableHead>Zariadenia</TableHead>
+                  <TableHead>Mesačný obrat</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Vytvorené</TableHead>
+                  <TableHead>Akcie</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {filteredLocations.map((location) => (
+                  <TableRow key={location.id}>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                        <span className="font-medium">{location.name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>{location.address}</TableCell>
+                    <TableCell className="capitalize">{location.type}</TableCell>
+                    <TableCell>
+                      <span className="font-medium">{getDeviceCount(location.id)}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium text-green-600">
+                        €{getMonthlyVolume(location.id).toLocaleString()}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(location.status)}>
+                        {location.status === 'active' && 'Aktívne'}
+                        {location.status === 'inactive' && 'Neaktívne'}
+                        {location.status === 'pending' && 'Čakajúce'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(location.createdAt).toLocaleDateString('sk-SK')}
+                    </TableCell>
+                    <TableCell>
+                      <EntityActions
+                        actions={[
+                          {
+                            type: 'view',
+                            label: 'Zobraziť detail',
+                            onClick: () => console.log('View location', location.id)
+                          },
+                          {
+                            type: 'edit',
+                            label: 'Upraviť',
+                            onClick: () => console.log('Edit location', location.id)
+                          },
+                          {
+                            type: 'delete',
+                            label: 'Vymazať',
+                            onClick: () => console.log('Delete location', location.id)
+                          }
+                        ]}
+                        entityName="pobočku"
+                        entityId={location.name}
+                        compact={true}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          ) : (
+            <div className="text-center py-8">
+              <MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                Žiadne pobočky
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {searchTerm ? 'Nenašli sa žiadne pobočky zodpovedajúce vyhľadávaniu.' : 'Zatiaľ nemáte žiadne pobočky.'}
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </PageHeader>

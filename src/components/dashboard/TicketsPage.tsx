@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Search, AlertCircle, CheckCircle, Clock, User, FileText, BarChart3 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { getClientData } from '@/data/clientData';
 import { demoTickets, getClientName, getAssignedToName, TicketData } from '@/data/demoData';
 import { getFilteredData } from '@/utils/roleUtils';
 import { SectionHeader } from '@/components/ui/section-header';
@@ -17,10 +18,28 @@ export const TicketsPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
 
-  // Filter tickets based on user role - properly typed
-  const filteredTickets: TicketData[] = getFilteredData(demoTickets, user!) as TicketData[];
-  const finalFilteredTickets = filteredTickets.filter(ticket => {
-    const clientName = getClientName(ticket.clientId);
+  if (!user) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-600 dark:text-gray-400">Načítanie...</p>
+      </div>
+    );
+  }
+
+  // Get tickets based on user role
+  const getTicketsData = () => {
+    if (user.role === 'client' && user.id === 'slavka-volkova-1') {
+      const clientData = getClientData(user.id);
+      return clientData?.tickets || [];
+    }
+    // For admin users, use filtered demo data
+    return getFilteredData(demoTickets, user) as TicketData[];
+  };
+
+  const allTickets = getTicketsData();
+  
+  const finalFilteredTickets = allTickets.filter(ticket => {
+    const clientName = user.role === 'client' ? user.fullName || '' : getClientName(ticket.clientId);
     const matchesSearch = ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          ticket.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          clientName.toLowerCase().includes(searchTerm.toLowerCase());
@@ -191,10 +210,12 @@ export const TicketsPage: React.FC = () => {
                   </p>
                   
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                    <span className="flex items-center gap-1">
-                      <User className="h-4 w-4" />
-                      {getClientName(ticket.clientId)}
-                    </span>
+                    {user.role === 'admin' && (
+                      <span className="flex items-center gap-1">
+                        <User className="h-4 w-4" />
+                        {getClientName(ticket.clientId)}
+                      </span>
+                    )}
                     <span>#{ticket.id}</span>
                     <span>Vytvorené: {new Date(ticket.createdAt).toLocaleDateString('sk-SK')}</span>
                     {ticket.assignedTo && (
