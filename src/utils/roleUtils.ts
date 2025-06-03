@@ -1,5 +1,6 @@
 
 import { User, UserRole } from '@/types/auth';
+import { getClientData } from '@/data/clientData';
 
 export const roleHierarchy: Record<UserRole, number> = {
   'admin': 3,
@@ -38,6 +39,30 @@ export const getFilteredData = <T extends { organizationId?: string; clientId?: 
   }
   
   if (currentUser.role === 'client') {
+    // For Slávka Valková, use her specific client data
+    if (currentUser.id === 'slavka-volkova-1') {
+      const clientData = getClientData(currentUser.id);
+      if (clientData) {
+        // Map the client-specific data to the expected format
+        if ('locations' in clientData && data.length > 0 && 'locationId' in data[0]) {
+          return clientData.locations as unknown as T[];
+        }
+        if ('devices' in clientData && data.length > 0 && 'serialNumber' in data[0]) {
+          return clientData.devices as unknown as T[];
+        }
+        if ('transactions' in clientData && data.length > 0 && 'amount' in data[0]) {
+          return clientData.transactions as unknown as T[];
+        }
+        if ('contracts' in clientData && data.length > 0 && 'contractNumber' in data[0]) {
+          return clientData.contracts as unknown as T[];
+        }
+        if ('tickets' in clientData && data.length > 0 && 'title' in data[0]) {
+          return clientData.tickets as unknown as T[];
+        }
+      }
+    }
+    
+    // Fallback to original filtering logic
     return data.filter(item => 
       item.organizationId === currentUser.organizationId ||
       item.clientId === currentUser.id
