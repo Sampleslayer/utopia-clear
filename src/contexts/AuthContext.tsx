@@ -213,12 +213,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-// Helper functions for role-based mock data - updated for Slávka Valková
+// Helper functions for role-based mock data
 const getMockUserIdByRole = (role: UserRole): string => {
   switch (role) {
     case 'admin': return 'admin-1';
     case 'business_partner': return 'bp-1';
-    case 'client': return 'slavka-volkova-1';
+    case 'client': return 'client-1';
     default: return 'user-' + Date.now();
   }
 };
@@ -227,7 +227,7 @@ const getMockEmailByRole = (role: UserRole): string => {
   switch (role) {
     case 'admin': return 'admin@utopia.sk';
     case 'business_partner': return 'partner@utopia.sk';
-    case 'client': return 'slavka.volkova@beautyplus.sk';
+    case 'client': return 'client@utopia.sk';
     default: return 'demo@utopia.sk';
   }
 };
@@ -236,7 +236,7 @@ const getMockUserNameByRole = (role: UserRole): string => {
   switch (role) {
     case 'admin': return 'ISO Organizácia Admin';
     case 'business_partner': return 'Obchodný partner s.r.o.';
-    case 'client': return 'Slávka Valková';
+    case 'client': return 'TechCorp s.r.o.';
     default: return 'Demo Používateľ';
   }
 };
@@ -244,7 +244,7 @@ const getMockUserNameByRole = (role: UserRole): string => {
 const getMockOrganizationIdByRole = (role: UserRole): string | undefined => {
   switch (role) {
     case 'business_partner': return 'bp-org-1';
-    case 'client': return 'beauty-plus-org';
+    case 'client': return 'org-1';
     default: return undefined;
   }
 };
@@ -258,18 +258,18 @@ const getRoleDisplayName = (role: UserRole): string => {
   }
 };
 
-// Helper functions for mock data with hierarchical structure - updated
+// Helper functions for mock data with hierarchical structure
 const getMockUserId = (email: string): string => {
   if (email.includes('admin')) return 'admin-1';
   if (email.includes('partner')) return 'bp-1';
-  if (email.includes('slavka') || email.includes('beauty')) return 'slavka-volkova-1';
+  if (email.includes('client')) return 'client-1';
   return 'user-' + Date.now();
 };
 
 const getMockUserName = (email: string): string => {
   if (email.includes('admin')) return 'ISO Organizácia Admin';
   if (email.includes('partner')) return 'Obchodný partner s.r.o.';
-  if (email.includes('slavka') || email.includes('beauty')) return 'Slávka Valková';
+  if (email.includes('client')) return 'TechCorp s.r.o.';
   return 'Demo Používateľ';
 };
 
@@ -281,6 +281,6 @@ const getMockUserRole = (email: string): UserRole => {
 
 const getMockOrganizationId = (email: string): string | undefined => {
   if (email.includes('partner')) return 'bp-org-1';
-  if (email.includes('slavka') || email.includes('beauty')) return 'beauty-plus-org';
+  if (email.includes('client')) return 'org-1';
   return undefined;
 };

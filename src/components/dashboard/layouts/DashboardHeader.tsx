@@ -10,26 +10,6 @@ import { NotificationCenter } from '@/components/notifications/NotificationCente
 export const DashboardHeader: React.FC = () => {
   const { user, logout } = useAuth();
 
-  const getProfileData = () => {
-    if (user?.role === 'client' && user?.fullName === 'Slávka Valková') {
-      return {
-        name: 'Slávka Valková',
-        email: 'slavka.volkova@beautyplus.sk',
-        avatar: 'https://cdn.prod.website-files.com/65bb58bd9feeda1fd2e1b551/6682b3b3bfc62d31bea12fb3_Slavka-p-500.webp',
-        fallback: 'SV'
-      };
-    }
-    
-    return {
-      name: user?.fullName || 'Marián Lapoš',
-      email: user?.email || 'marian.lapos@onepos.eu',
-      avatar: 'https://cdn.prod.website-files.com/65bb58bd9feeda1fd2e1b551/668549d26dee517c49833a53_Lapos-p-500.webp',
-      fallback: 'ML'
-    };
-  };
-
-  const profileData = getProfileData();
-
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-3">
       <div className="flex items-center justify-end">
@@ -44,17 +24,17 @@ export const DashboardHeader: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <Avatar className="h-8 w-8">
                     <AvatarImage 
-                      src={profileData.avatar}
-                      alt={profileData.name}
+                      src="https://cdn.prod.website-files.com/65bb58bd9feeda1fd2e1b551/668549d26dee517c49833a53_Lapos-p-500.webp" 
+                      alt="Marián Lapoš" 
                     />
-                    <AvatarFallback>{profileData.fallback}</AvatarFallback>
+                    <AvatarFallback>ML</AvatarFallback>
                   </Avatar>
                   
                   <div className="flex flex-col space-y-0.5">
                     {/* Name */}
                     <div className="flex items-center space-x-2">
                       <span className="text-sm font-semibold text-gray-900">
-                        {profileData.name}
+                        {user?.fullName || 'Marián Lapoš'}
                       </span>
                       {/* Online Status Indicator */}
                       <div className="flex items-center space-x-1">
@@ -67,7 +47,7 @@ export const DashboardHeader: React.FC = () => {
                     
                     {/* Email */}
                     <span className="text-xs text-gray-500">
-                      {profileData.email}
+                      {user?.email || 'marian.lapos@onepos.eu'}
                     </span>
                   </div>
                 </div>
@@ -89,3 +69,4 @@ export const DashboardHeader: React.FC = () => {
     </header>
   );
 };
+
