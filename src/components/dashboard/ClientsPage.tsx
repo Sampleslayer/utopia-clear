@@ -17,14 +17,17 @@ import {
   Mail,
   Calendar,
   Plus,
-  UserPlus
+  UserPlus,
+  AlertTriangle
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AddMerchantDialog } from './AddMerchantDialog';
 import { EntityActions } from '@/components/ui/entity-actions';
 import { SectionHeader } from '@/components/ui/section-header';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 
-// Mock data for merchants
+// Mock data for merchants with contract violation detection
 const mockMerchants = [
   {
     id: 'client-1',
@@ -37,8 +40,10 @@ const mockMerchants = [
     status: 'active',
     createdAt: '2024-01-15',
     monthlyRevenue: 12400,
+    expectedRevenue: 15000, // Deklarovaný obrat
     locationsCount: 2,
-    assignedManager: 'Peter Manažér'
+    assignedManager: 'Peter Manažér',
+    contractViolation: true // Skutočný obrat je nižší ako deklarovaný
   },
   {
     id: 'client-2',
@@ -51,8 +56,10 @@ const mockMerchants = [
     status: 'inactive',
     createdAt: '2023-11-01',
     monthlyRevenue: 6800,
+    expectedRevenue: 7000,
     locationsCount: 1,
-    assignedManager: 'Zuzana Riaditeľka'
+    assignedManager: 'Zuzana Riaditeľka',
+    contractViolation: false
   },
   {
     id: 'client-3',
@@ -65,8 +72,10 @@ const mockMerchants = [
     status: 'active',
     createdAt: '2024-03-10',
     monthlyRevenue: 9200,
+    expectedRevenue: 8000,
     locationsCount: 3,
-    assignedManager: 'Michal Technik'
+    assignedManager: 'Michal Technik',
+    contractViolation: false
   },
   {
     id: 'client-4',
@@ -79,8 +88,10 @@ const mockMerchants = [
     status: 'pending',
     createdAt: '2024-02-28',
     monthlyRevenue: 4500,
+    expectedRevenue: 6000,
     locationsCount: 1,
-    assignedManager: 'Jana Obchodníčka'
+    assignedManager: 'Jana Obchodníčka',
+    contractViolation: true
   },
   {
     id: 'client-5',
@@ -93,8 +104,10 @@ const mockMerchants = [
     status: 'active',
     createdAt: '2023-09-18',
     monthlyRevenue: 21500,
+    expectedRevenue: 20000,
     locationsCount: 5,
-    assignedManager: 'Ondrej Projektový'
+    assignedManager: 'Ondrej Projektový',
+    contractViolation: false
   }
 ];
 
@@ -104,6 +117,7 @@ export const ClientsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [industryFilter, setIndustryFilter] = useState('all');
+  const [showViolationsOnly, setShowViolationsOnly] = useState(false);
 
   const filteredMerchants = mockMerchants.filter(merchant => {
     const searchMatch = merchant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -111,12 +125,27 @@ export const ClientsPage: React.FC = () => {
                         merchant.email.toLowerCase().includes(searchTerm.toLowerCase());
     const statusMatch = statusFilter === 'all' || merchant.status === statusFilter;
     const industryMatch = industryFilter === 'all' || merchant.industry === industryFilter;
+    const violationMatch = !showViolationsOnly || merchant.contractViolation;
 
-    return searchMatch && statusMatch && industryMatch;
+    return searchMatch && statusMatch && industryMatch && violationMatch;
   });
 
   const handleMerchantClick = (merchantId: string) => {
     navigate(`/dashboard/merchants/${merchantId}`);
+  };
+
+  const handleViolationsFilterChange = (checked: boolean | 'indeterminate') => {
+    setShowViolationsOnly(checked === true);
+  };
+
+  const handleAddMerchant = () => {
+    // Set merchant onboarding context
+    localStorage.setItem('onboarding_context', JSON.stringify({ 
+      type: 'merchant',
+      initiatedBy: user?.role,
+      organizationId: user?.organizationId 
+    }));
+    navigate('/onboarding/company');
   };
 
   const getStatusColor = (status: string) => {
@@ -161,6 +190,7 @@ export const ClientsPage: React.FC = () => {
     const now = new Date();
     return createdDate.getMonth() === now.getMonth() && createdDate.getFullYear() === now.getFullYear();
   }).length;
+  const contractViolations = mockMerchants.filter(m => m.contractViolation).length;
 
   const stats = [
     {
@@ -180,6 +210,12 @@ export const ClientsPage: React.FC = () => {
       value: newThisMonth,
       icon: UserPlus,
       color: 'bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400'
+    },
+    {
+      label: 'Porušenia zmluvy',
+      value: contractViolations,
+      icon: AlertTriangle,
+      color: 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
     }
   ];
 
@@ -193,171 +229,216 @@ export const ClientsPage: React.FC = () => {
         <TrendingUp className="h-4 w-4" />
         <span>Reporty</span>
       </Button>
-      <AddMerchantDialog />
+      <Button 
+        onClick={handleAddMerchant}
+        className="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white flex items-center space-x-2"
+      >
+        <UserPlus className="h-4 w-4" />
+        <span>Pridať merchanta</span>
+      </Button>
     </>
   );
 
   return (
-    <div className="space-y-6">
-      <SectionHeader
-        icon={Users}
-        title="Merchanti"
-        description="Správa klientov a ich obchodných aktivít"
-        stats={stats}
-        actions={actions}
-      />
+    <TooltipProvider>
+      <div className="space-y-6">
+        <SectionHeader
+          icon={Users}
+          title="Merchanti"
+          description="Správa klientov a ich obchodných aktivít"
+          stats={stats}
+          actions={actions}
+        />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                placeholder="Hľadať merchantov..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Všetky statusy</SelectItem>
-                <SelectItem value="active">Aktívny</SelectItem>
-                <SelectItem value="inactive">Neaktívny</SelectItem>
-                <SelectItem value="pending">Čakajúci</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={industryFilter} onValueChange={setIndustryFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Odvetvie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Všetky odvetvia</SelectItem>
-                <SelectItem value="restaurant">Reštaurácia</SelectItem>
-                <SelectItem value="retail">Maloobchod</SelectItem>
-                <SelectItem value="hospitality">Hotelierstvo</SelectItem>
-                <SelectItem value="fitness">Fitness</SelectItem>
-                <SelectItem value="beauty">Kaderníctvo</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Viac filtrov
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Merchants Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Zoznam merchantov</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Merchant</TableHead>
-                <TableHead>Kontakt</TableHead>
-                <TableHead>Odvetvie</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Mesačné tržby</TableHead>
-                <TableHead>Lokácie</TableHead>
-                <TableHead>Priradený manažér</TableHead>
-                <TableHead>Akcie</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredMerchants.map((merchant) => (
-                <TableRow 
-                  key={merchant.id}
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
-                  onClick={() => handleMerchantClick(merchant.id)}
+        {/* Filters */}
+        <Card>
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Hľadať merchantov..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Všetky statusy</SelectItem>
+                  <SelectItem value="active">Aktívny</SelectItem>
+                  <SelectItem value="inactive">Neaktívny</SelectItem>
+                  <SelectItem value="pending">Čakajúci</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Odvetvie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Všetky odvetvia</SelectItem>
+                  <SelectItem value="restaurant">Reštaurácia</SelectItem>
+                  <SelectItem value="retail">Maloobchod</SelectItem>
+                  <SelectItem value="hospitality">Hotelierstvo</SelectItem>
+                  <SelectItem value="fitness">Fitness</SelectItem>
+                  <SelectItem value="beauty">Kaderníctvo</SelectItem>
+                </SelectContent>
+              </Select>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="violations-only"
+                  checked={showViolationsOnly}
+                  onCheckedChange={handleViolationsFilterChange}
+                />
+                <label
+                  htmlFor="violations-only"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                 >
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{merchant.name}</p>
-                      <p className="text-sm text-gray-500">{merchant.contactPerson}</p>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Mail className="h-3 w-3 mr-1" />
-                        {merchant.email}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <Phone className="h-3 w-3 mr-1" />
-                        {merchant.phone}
-                      </div>
-                      <div className="flex items-center text-sm text-gray-600">
-                        <MapPin className="h-3 w-3 mr-1" />
-                        {merchant.address}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{getIndustryLabel(merchant.industry)}</Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(merchant.status)}>
-                      {merchant.status === 'active' ? 'Aktívny' : 
-                       merchant.status === 'inactive' ? 'Neaktívny' : 'Čakajúci'}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">€{merchant.monthlyRevenue.toLocaleString()}</p>
-                      <p className="text-sm text-gray-500">
-                        Provízia: €{(merchant.monthlyRevenue * 0.025).toFixed(2)}
-                      </p>
-                    </div>
-                  </TableCell>
-                  <TableCell>{merchant.locationsCount}</TableCell>
-                  <TableCell>
-                    <div>
-                      <p className="font-medium">{merchant.assignedManager}</p>
-                      <div className="flex items-center text-sm text-gray-500">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {new Date(merchant.createdAt).toLocaleDateString('sk-SK')}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <EntityActions
-                      actions={[
-                        {
-                          type: 'view',
-                          label: 'Zobraziť detail',
-                          onClick: () => handleMerchantClick(merchant.id)
-                        },
-                        {
-                          type: 'edit',
-                          label: 'Upraviť',
-                          onClick: () => console.log('Edit merchant', merchant.id)
-                        },
-                        {
-                          type: 'delete',
-                          label: 'Vymazať',
-                          onClick: () => console.log('Delete merchant', merchant.id)
-                        }
-                      ]}
-                      entityName="merchanta"
-                      entityId={merchant.name}
-                      compact={true}
-                    />
-                  </TableCell>
+                  Iba porušenia
+                </label>
+              </div>
+              <Button variant="outline">
+                <Filter className="h-4 w-4 mr-2" />
+                Viac filtrov
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Merchants Table */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Zoznam merchantov</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Merchant</TableHead>
+                  <TableHead>Kontakt</TableHead>
+                  <TableHead>Odvetvie</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Mesačné tržby</TableHead>
+                  <TableHead>Lokácie</TableHead>
+                  <TableHead>Priradený manažér</TableHead>
+                  <TableHead>Akcie</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-    </div>
+              </TableHeader>
+              <TableBody>
+                {filteredMerchants.map((merchant) => (
+                  <TableRow 
+                    key={merchant.id}
+                    className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => handleMerchantClick(merchant.id)}
+                  >
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-medium">{merchant.name}</p>
+                            {merchant.contractViolation && (
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <div className="text-sm">
+                                    <p className="font-semibold text-red-600">Porušenie zmluvy</p>
+                                    <p>Skutočný obrat: €{merchant.monthlyRevenue.toLocaleString()}</p>
+                                    <p>Deklarovaný obrat: €{merchant.expectedRevenue.toLocaleString()}</p>
+                                    <p>Rozdiel: €{(merchant.expectedRevenue - merchant.monthlyRevenue).toLocaleString()}</p>
+                                  </div>
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-500">{merchant.contactPerson}</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-3 w-3 mr-1" />
+                          {merchant.email}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Phone className="h-3 w-3 mr-1" />
+                          {merchant.phone}
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="h-3 w-3 mr-1" />
+                          {merchant.address}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline">{getIndustryLabel(merchant.industry)}</Badge>
+                    </TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(merchant.status)}>
+                        {merchant.status === 'active' ? 'Aktívny' : 
+                         merchant.status === 'inactive' ? 'Neaktívny' : 'Čakajúci'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">€{merchant.monthlyRevenue.toLocaleString()}</p>
+                        {merchant.contractViolation && (
+                          <p className="text-sm text-red-500">
+                            Očakávaný: €{merchant.expectedRevenue.toLocaleString()}
+                          </p>
+                        )}
+                        <p className="text-sm text-gray-500">
+                          Provízia: €{(merchant.monthlyRevenue * 0.025).toFixed(2)}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>{merchant.locationsCount}</TableCell>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{merchant.assignedManager}</p>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <Calendar className="h-3 w-3 mr-1" />
+                          {new Date(merchant.createdAt).toLocaleDateString('sk-SK')}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <EntityActions
+                        actions={[
+                          {
+                            type: 'view',
+                            label: 'Zobraziť detail',
+                            onClick: () => handleMerchantClick(merchant.id)
+                          },
+                          {
+                            type: 'edit',
+                            label: 'Upraviť',
+                            onClick: () => console.log('Edit merchant', merchant.id)
+                          },
+                          {
+                            type: 'delete',
+                            label: 'Vymazať',
+                            onClick: () => console.log('Delete merchant', merchant.id)
+                          }
+                        ]}
+                        entityName="merchanta"
+                        entityId={merchant.name}
+                        compact={true}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
+      </div>
+    </TooltipProvider>
   );
 };
 

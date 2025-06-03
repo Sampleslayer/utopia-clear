@@ -12,13 +12,18 @@ export const ActionPanel: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleAddTeamMember = () => {
-    // Redirect to onboarding for new merchant
-    navigate('/onboarding');
+  const handleAddMerchant = () => {
+    // Set merchant onboarding context
+    localStorage.setItem('onboarding_context', JSON.stringify({ 
+      type: 'merchant',
+      initiatedBy: user?.role,
+      organizationId: user?.organizationId 
+    }));
+    navigate('/onboarding/company');
   };
 
-  const handleAddMerchant = () => {
-    // Redirect to onboarding for new merchant
+  const handleAddTeamMember = () => {
+    // Redirect to onboarding for new team member
     navigate('/onboarding');
   };
 
@@ -80,11 +85,15 @@ export const ActionPanel: React.FC = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-gray-800 border shadow-lg">
-                  <DropdownMenuItem onClick={handleAddTeamMember} className="cursor-pointer">
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    <span>Nový klient</span>
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleAddMerchant} className="cursor-pointer">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    <span>Nový merchant</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleAddTeamMember} className="cursor-pointer">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>Nový člen tímu</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => console.log('Add location')} className="cursor-pointer">
                     <Building2 className="h-4 w-4 mr-2" />
                     <span>Nová lokácia</span>
                   </DropdownMenuItem>
